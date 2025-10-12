@@ -4,7 +4,7 @@
 SELECT * FROM airline;
 ```
 Результат выполнения запроса:
-![[images/Pasted image 20251012141309.png]]
+!(images/Pasted image 20251012141309.png)
 
 1.2. Все данные из таблицы `passenger`.
 ```sql

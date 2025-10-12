@@ -4,6 +4,7 @@
 SELECT * FROM airline;
 ```
 Результат выполнения запроса:
+
 ![](images/Pasted%20image%2020251012141309.png)
 
 1.2. Все данные из таблицы `passenger`.
@@ -11,6 +12,7 @@ SELECT * FROM airline;
 SELECT * FROM passenger;
 ```
 Результат выполнения запроса:
+
 ![](images/Pasted%20image%2020251012141613.png)
 
 4. **Выборка данных с созданием вычисляемого столбца**
@@ -19,12 +21,14 @@ SELECT * FROM passenger;
 SELECT flight_id, fare_class_id, price, available_seats, price * available_seats AS total_price FROM fare;
 ```
 Результат выполнения запроса:
+
 ![](images/Pasted%20image%2020251012142407.png)
 4.2. Продолжительность полетов в часах
 ```sql
 SELECT id, departure_time,arrival_time, arrival_time - departure_time AS flight_duration FROM flight;
 ```
 Результат выполнения запроса:
+
 ![](images/Pasted%20image%2020251012142943.png)
 
 7. **Выборка данных по условию**
@@ -33,6 +37,7 @@ SELECT id, departure_time,arrival_time, arrival_time - departure_time AS flight_
 SELECT id, departure_time FROM flight WHERE departure_time > '2025-10-22 00:00:00+03';
 ```
 Результат выполнения запроса:
+
 ![](images/Pasted%20image%2020251012143652.png)
 
 7.2. Модели самолетов с вместимостью более 100
@@ -40,6 +45,7 @@ SELECT id, departure_time FROM flight WHERE departure_time > '2025-10-22 00:00:0
 SELECT model, capacity FROM aircraft_model WHERE capacity > 100;
 ```
 Результат выполнения запроса:
+
 ![](images/Pasted%20image%2020251012143936.png)
 
 10. **Выборка данных с сортировкой**
@@ -48,6 +54,7 @@ SELECT model, capacity FROM aircraft_model WHERE capacity > 100;
 SELECT model, capacity FROM aircraft_model ORDER BY capacity DESC;
 ```
 Результат выполнения запроса:
+
 ![](images/Pasted%20image%2020251012144317.png)
 
 10.2. Тарифы упорядоченные по возрастанию цены;
@@ -55,6 +62,7 @@ SELECT model, capacity FROM aircraft_model ORDER BY capacity DESC;
 SELECT id, price, available_seats FROM fare ORDER BY price ASC;
 ```
 Результат выполнения запроса:
+
 ![](images/Pasted%20image%2020251012144644.png)
 
 13. **Выбор ограниченного количества возвращаемых строк.**
@@ -63,6 +71,7 @@ SELECT id, price, available_seats FROM fare ORDER BY price ASC;
 SELECT model, capacity FROM aircraft_model ORDER BY capacity DESC LIMIT 1;
 ```
 Результат выполнения запроса:
+
 ![](images/Pasted%20image%2020251012145036.png)
 
 13.2. 3 рейса с самым ранним вылетом
@@ -70,6 +79,7 @@ SELECT model, capacity FROM aircraft_model ORDER BY capacity DESC LIMIT 1;
 SELECT id, flight_number, departure_time ORDER BY departure_time LIMIT 3;
 ```
 Результат выполнения запроса:
+
 ![](images/Pasted%20image%2020251012145530.png)
 
 16. **Выбор ограниченного количества возвращаемых строк.**
@@ -78,6 +88,7 @@ SELECT id, flight_number, departure_time ORDER BY departure_time LIMIT 3;
 SELECT city.name AS city_name, airport.name AS airport_name, airport.iata_code FROM city RIGHT JOIN airport ON city.id = airport.city_id;
 ```
 Результат выполнения запроса:
+
 ![](images/Pasted%20image%2020251012150342.png)
 
 16.2. Показать все рейсы и их статусы
@@ -85,4 +96,5 @@ SELECT city.name AS city_name, airport.name AS airport_name, airport.iata_code F
 SELECT flight.id AS flight_id, flight.departure_time, flight_status.description AS status_description FROM flight RIGHT JOIN flight_status ON flight.status_id = flight_status.id;
 ```
 Результат выполнения запроса:
+
 ![](images/Pasted%20image%2020251012150854.png)

@@ -33,6 +33,23 @@ SELECT price, available_seats FROM fare;
 
 ![](images/Pasted%20image%2020251012141638.png)
 
+3. **Присвоение новых имен столбцам при формировании выборки**
+
+3.1. Присваиваем столбцам "first_name", "last_name" имена "имя", "фамилия"
+
+```sql
+SELECT first_name AS Имя, last_name AS Фамилия FROM passenger;
+```
+
+![](images/image.png)
+
+3.2. Присваиваем столбцам "iata_code", "name" имена "IATA код", "Название"
+
+```sql
+SELECT iata_code AS "IATA код", name AS "Название" FROM airport;
+```
+
+![](images/Снимок%экрана%2025-10-12%200402.png)
 
 4. **Выборка данных с созданием вычисляемого столбца**
 4.1. Общую стоимость оставшихся доступных мест по классам в рейсах.

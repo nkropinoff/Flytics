@@ -117,7 +117,7 @@ FROM flight
 ```
 ![](images/image4.png)
 
-8. **Выборка данных по условию**
+7. **Выборка данных по условию**
 7.1. Рейсы вылетающие позже чем 2025-10-22 00:00:00+03
 ```sql
 SELECT id, departure_time FROM flight WHERE departure_time > '2025-10-22 00:00:00+03';

@@ -67,7 +67,7 @@ SELECT id, departure_time,arrival_time, arrival_time - departure_time AS flight_
 
 ![](images/Pasted%20image%2020251012142943.png)
 
-5. Выборка данных с использованием вычисляемого столбца, математические функции
+5. **Выборка данных с использованием вычисляемого столбца, математические функции**
 
 5.1. Расчет скидки на билеты из таблицы fare
 
@@ -92,8 +92,32 @@ FROM booking;
 
 ![](images/Pasted%20image%2020251012142718.png)
 
+6. **Выборка данных, вычисляемые столбцы, логические функции**
+6.1. Скидка, зависящая от цены
 
-7. **Выборка данных по условию**
+```sql
+SELECT client_id, booking_date, total_cost,
+CASE
+	WHEN total_cost > 30000 THEN total_cost * 0.8
+	ELSE total_cost * 0.95
+END AS cost_with_discount
+FROM booking
+```
+![](images/image3.png)
+
+6.2. Статус, зависящий от номера рейса
+
+```sql
+SELECT flight_number, departure_time, arrival_time, 
+CASE
+	WHEN flight_number = 'S7150' THEN 'Delayed'
+	ELSE 'OK'
+END AS status
+FROM flight
+```
+![](images/image4.png)
+
+8. **Выборка данных по условию**
 7.1. Рейсы вылетающие позже чем 2025-10-22 00:00:00+03
 ```sql
 SELECT id, departure_time FROM flight WHERE departure_time > '2025-10-22 00:00:00+03';

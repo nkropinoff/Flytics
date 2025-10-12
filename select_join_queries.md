@@ -49,7 +49,7 @@ SELECT first_name AS Имя, last_name AS Фамилия FROM passenger;
 SELECT iata_code AS "IATA код", name AS "Название" FROM airport;
 ```
 
-![](images/Снимок%экрана%2025-10-12%200402.png)
+![](images/image2.png)
 
 4. **Выборка данных с созданием вычисляемого столбца**
 4.1. Общую стоимость оставшихся доступных мест по классам в рейсах.

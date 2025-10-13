@@ -93,6 +93,7 @@ FROM booking;
 ![](images/Pasted%20image%2020251012142718.png)
 
 6. **Выборка данных, вычисляемые столбцы, логические функции**
+
 6.1. Скидка, зависящая от цены
 
 ```sql
@@ -101,7 +102,7 @@ CASE
 	WHEN total_cost > 30000 THEN total_cost * 0.8
 	ELSE total_cost * 0.95
 END AS cost_with_discount
-FROM booking
+FROM booking;
 ```
 ![](images/image3.png)
 
@@ -113,11 +114,12 @@ CASE
 	WHEN flight_number = 'S7150' THEN 'Delayed'
 	ELSE 'OK'
 END AS status
-FROM flight
+FROM flight;
 ```
 ![](images/image4.png)
 
 7. **Выборка данных по условию**
+
 7.1. Рейсы вылетающие позже чем 2025-10-22 00:00:00+03
 ```sql
 SELECT id, departure_time FROM flight WHERE departure_time > '2025-10-22 00:00:00+03';
@@ -134,7 +136,7 @@ SELECT model, capacity FROM aircraft_model WHERE capacity > 100;
 
 ![](images/Pasted%20image%2020251012143936.png)
 
-8. Выборка данных, логические операции
+8. **Выборка данных, логические операции**
 
 8.1. клиентов, которые **либо** зовут Егор, **либо** фамилия **не** Петров:
 
@@ -155,8 +157,28 @@ WHERE birthdate > '2000-01-01' AND NOT first_name = 'Ivan';
 
 ![](images/Pasted%20image%2020251012143550.png)
 
+9. **Выборка данных, операторы BETWEEN, IN**
+
+9.1. Самолеты, вместимость которых от 180 до 250
+
+```sql
+SELECT model, capacity
+FROM aircraft_model
+WHERE capacity BETWEEN 180 AND 250;
+```
+![](images/image5.png)
+
+9.2. Рейсы, направляющиеся в Пулково или Шереметьево
+
+```sql
+SELECT number, departure_airport_id, arrival_airport_id
+FROM flight_number 
+WHERE arrival_airport_id IN ('LED', 'SVO');
+```
+![](images/image6.png)
 
 10. **Выборка данных с сортировкой**
+
 10.1. Модели самолетов упорядоченные по убыванию вместимости
 ```sql
 SELECT model, capacity FROM aircraft_model ORDER BY capacity DESC;

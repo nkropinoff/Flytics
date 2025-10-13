@@ -195,7 +195,7 @@ SELECT id, price, available_seats FROM fare ORDER BY price ASC;
 
 ![](images/Pasted%20image%2020251012144644.png)
 
-11. Выборка данных, оператор LIKE
+11. **Выборка данных, оператор LIKE**
 
 11.1. Клинты, у которых имя начинается на "A"
 
@@ -217,6 +217,21 @@ WHERE iata_code LIKE '_7';
 
 ![](images/Pasted%20image%2020251012144028.png)
 
+12. **Выбор уникальных элементов столбца**
+
+12.1. Названия аэропортов
+
+```sql
+SELECT DISTINCT name FROM airport;
+```
+![](images/image7.png)
+
+12.2. Названия авиакомпаний
+
+```sql
+SELECT DISTINCT name FROM airline;
+```
+![](images/image8.png)
 
 13. **Выбор ограниченного количества возвращаемых строк.**
 13.1. Самый вместительная модель самолета

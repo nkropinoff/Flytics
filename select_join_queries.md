@@ -250,7 +250,7 @@ SELECT id, flight_number, departure_time ORDER BY departure_time LIMIT 3;
 
 ![](images/Pasted%20image%2020251012145530.png)
 
-14. Соединение INNER JOIN
+14. **Соединение INNER JOIN**
 
 14.1. Вывести количество и стоимость билетов для рейса с id = 1
 
@@ -275,7 +275,25 @@ FROM flight INNER JOIN flight_status ON flight.status_id = flight_status.id;
 
 ![](images/Pasted%20image%2020251012144756.png)
 
+15. **Внешнее соединение LEFT и RIGHT OUTER JOIN**
 
+15.1. Город, в котором находится аэропорт по id
+
+```sql
+SELECT iata_code, airport.name, city.name
+FROM airport LEFT JOIN city
+ON airport.city_id = city.id;
+```
+![](images/image9.png)
+
+15.2. Модель самолета и его авиакомпания
+
+```sql
+SELECT model, name as airline_name
+FROM aircraft RIGHT JOIN airline
+ON airline.iata_code = aircraft.airline_iata_code;
+```
+![](images/image10.png)
 
 16. **Выбор ограниченного количества возвращаемых строк.**
 16.1. Объединение аэропорта и города в котором он находится.
@@ -294,7 +312,7 @@ SELECT flight.id AS flight_id, flight.departure_time, flight_status.description 
 
 ![](images/Pasted%20image%2020251012150854.png)
 
-17. Перекрестное соединение CROSS JOIN
+17. **Перекрестное соединение CROSS JOIN**
 
 17.1. Все комбинации авиакомпаний и моделей самолетов
 
@@ -311,7 +329,7 @@ LIMIT 10;
 
 ![](images/Pasted%20image%2020251012145404.png)
 
-17.2; Комбинации способов оплаты и статусов платежей
+17.2. Комбинации способов оплаты и статусов платежей
 
 ```sql
 SELECT 

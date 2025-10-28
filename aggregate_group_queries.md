@@ -78,7 +78,7 @@ FROM fare f
 JOIN fare_class fc ON f.fare_class_id = fc.id
 WHERE fc.description = 'Economy';
 ```
-![[images/Pasted image 20251028144154.png]]
+![](images/Pasted%20image%2020251028144154.png)
 
 6. STRING_AGG
 6.1 **Список всех городов через запятую**
@@ -86,21 +86,21 @@ WHERE fc.description = 'Economy';
 SELECT STRING_AGG(name, ', ' ORDER BY name) AS all_cities
 FROM city;
 ```
-![[images/Pasted image 20251028144248.png]]
+![](images/Pasted%20image%2020251028144248.png))
 
 6.2 **Список всех авиакомпаний через точку с запятой**
 ```sql
 SELECT STRING_AGG(name, '; ' ORDER BY name) AS all_airlines
 FROM airline;
 ```
-![[images/Pasted image 20251028144530.png]]
+![](images/Pasted%20image%2020251028144530.png)
 
 7. Комбинирование функций
 7.1 **Общая статистика по всем бронированиям**
 ```sql
 SELECT COUNT(*) AS total_bookings, SUM(total_cost) AS total_revenue, AVG(total_cost) AS average_cost, MIN(total_cost) AS min_cost, MAX(total_cost) AS max_cost FROM booking;
 ```
-![[images/Pasted image 20251028144636.png]]
+![](images/Pasted%20image%2020251028144636.png)
 
 7.2 **Статистика по вместимости самолетов**
 ```sql
@@ -112,4 +112,4 @@ SELECT COUNT(*) AS total_aircraft_models,
        STRING_AGG(model, ', ' ORDER BY capacity DESC) AS models_by_capacity
 FROM aircraft_model;
 ```
-![[images/Pasted image 20251028145221.png]]
+![](images/Pasted%20image%2020251028145221.png)

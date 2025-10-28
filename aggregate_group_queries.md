@@ -4,7 +4,7 @@
 SELECT AVG(total_cost) AS average_booking_cost
 FROM booking;
 ```
-![[images/Pasted image 20251028143016.png]]
+![](images/Pasted%20image%2020251028143016.png)
 
 1.2 **Средняя цена билетов эконом-класса**
 ```sql
@@ -13,7 +13,7 @@ FROM fare f
 JOIN fare_class fc ON f.fare_class_id = fc.id
 WHERE fc.description = 'Economy';
 ```
-![[images/Pasted image 20251028143057.png]]
+![](images/Pasted%20image%2020251028143057.png)
 
 2. COUNT
 2.1  **Общее количество рейсов в базе**
@@ -21,7 +21,7 @@ WHERE fc.description = 'Economy';
 SELECT COUNT(*) AS total_flights
 FROM flight;
 ```
-![[images/Pasted image 20251028143418.png]]
+![](mages/Pasted%20image&2020251028143418.png)
 
 2.2 **Количество рейсов авиакомпании Аэрофлот**
 ```sql
@@ -31,7 +31,7 @@ JOIN aircraft ac ON fl.aircraft_id = ac.id
 JOIN airline al ON ac.airline_iata_code = al.iata_code
 WHERE al.name = 'Аэрофлот';
 ```
-![[images/Pasted image 20251028143515.png]]
+![](images/Pasted%20image%2020251028143515.png)
 
 3. MIN
 3.1 **Минимальная цена среди всех билетов**
@@ -39,14 +39,14 @@ WHERE al.name = 'Аэрофлот';
 SELECT MIN(price) AS min_price
 FROM fare;
 ```
-![[images/Pasted image 20251028143704.png]]
+![](images/Pasted%20image%2020251028143704.png)
 
 3.2 **Самое раннее время вылета**
 ```sql
 SELECT MIN(departure_time) AS earliest_departure
 FROM flight;
 ```
-![[images/Pasted image 20251028143756.png]]
+![](images/Pasted%20image%2020251028143756.png)
 
 4. MAX
 4.1 **Максимальная цена среди всех билетов**
@@ -54,14 +54,14 @@ FROM flight;
 SELECT MAX(price) AS max_price
 FROM fare;
 ```
-![[images/Pasted image 20251028143855.png]]
+![](images/Pasted%20image%2020251028143855.png)
 
 4.2 **Самое позднее время вылета**
 ```sql
 SELECT MAX(departure_time) AS latest_departure
 FROM flight;
 ```
-![[images/Pasted image 20251028143925.png]]
+![](images/Pasted%20image%2020251028143925.png)
 
 5. SUM
 5.1 **Общая выручка по всем бронированиям**
@@ -69,7 +69,7 @@ FROM flight;
 SELECT SUM(total_cost) AS total_revenue
 FROM booking;
 ```
-![[images/Pasted image 20251028144115.png]]
+![](images/Pasted%20image%2020251028144115.png)
 
 5.2 **Общее количество доступных мест эконом-класса**
 ```sql

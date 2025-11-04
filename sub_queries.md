@@ -303,3 +303,101 @@ WHERE iata_code IN (
 );
 ```
 ![](images/img18.png)
+
+
+7. ANY
+
+7.1. **Рейсы с ценами выше некоторых эконом-тарифов**
+```sql
+SELECT 
+    fn.number as flight_number,
+    f.departure_time,
+    fare.price
+FROM flight f
+JOIN flight_number fn ON f.flight_number = fn.number
+JOIN fare ON f.id = fare.flight_id
+WHERE fare.price > ANY (
+    SELECT price 
+    FROM fare 
+    WHERE fare_class_id = 1
+);
+```
+![](images/img19.png)
+
+7.2. **Клиенты с бронированиями дешевле некоторых отмененных**
+```sql
+SELECT 
+    first_name,
+    last_name,
+    b.total_cost
+FROM client c
+JOIN booking b ON c.id = b.client_id
+WHERE b.total_cost < ANY (
+    SELECT total_cost 
+    FROM booking 
+    WHERE status_id = 3
+);
+```
+![](images/img20.png)
+
+7.3. **Тарифы дешевле некоторых бизнес-классов**
+```sql
+SELECT 
+    fc.description as fare_class,
+    f.price
+FROM fare f
+JOIN fare_class fc ON f.fare_class_id = fc.id
+WHERE f.price < ANY (
+    SELECT price 
+    FROM fare 
+    WHERE fare_class_id = 3
+);
+```
+![](images/img21.png)
+
+
+8. EXIST
+
+8.1. **Клиенты, у которых есть бронирования**
+```sql
+SELECT 
+    first_name,
+    last_name,
+    email
+FROM client c
+WHERE EXISTS (
+    SELECT 1 
+    FROM booking b 
+    WHERE b.client_id = c.id
+);
+```
+![](images/img22.png)
+
+8.2. **Рейсы, на которые проданы билеты**
+```sql
+SELECT 
+    fn.number as flight_number,
+    f.departure_time
+FROM flight f
+JOIN flight_number fn ON f.flight_number = fn.number
+WHERE EXISTS (
+    SELECT 1 
+    FROM ticket t 
+    WHERE t.flight_id = f.id
+);
+```
+![](images/img23.png)
+
+8.3. **Авиакомпании, у которых есть самолеты**
+```sql
+SELECT 
+    name as airline_name,
+    iata_code
+FROM airline a
+WHERE EXISTS (
+    SELECT 1 
+    FROM aircraft ac 
+    WHERE ac.airline_iata_code = a.iata_code
+);
+```
+![](images/img24.png)

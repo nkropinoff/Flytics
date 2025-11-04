@@ -45,6 +45,7 @@ FROM airport a;
 ![](images/img3.png)
 
 
+
 2. FROM
 
 2.1. **Средняя стоимость бронирований по каждому клиенту**
@@ -99,3 +100,53 @@ FROM (
 ) as airline_stats;
 ```
 ![](images/img6.png)
+
+
+3. WHERE
+
+3.1. **Рейсы, на которые есть билеты дороже 30000 рублей**
+```sql
+SELECT 
+    fn.number as flight_number,
+    f.departure_time,
+    f.arrival_time
+FROM flight f
+JOIN flight_number fn ON f.flight_number = fn.number
+WHERE f.id IN (
+    SELECT flight_id 
+    FROM fare 
+    WHERE price > 30000
+);
+```
+![](images/img7.png)
+
+3.2. **Клиенты, у которых есть бронирования**
+```sql
+SELECT 
+    first_name,
+    last_name,
+    email
+FROM client
+WHERE id IN (
+    SELECT DISTINCT client_id 
+    FROM booking
+);
+```
+![](images/img8.png)
+
+3.3. **Пассажиры, которые летали бизнес-классом**
+```sql
+SELECT 
+    first_name,
+    last_name,
+    passport_series,
+    passport_number
+FROM passenger
+WHERE id IN (
+    SELECT t.passenger_id
+    FROM ticket t
+    JOIN fare f ON t.fare_id = f.id
+    WHERE f.fare_class_id = 3
+);
+```
+![](images/img9.png)

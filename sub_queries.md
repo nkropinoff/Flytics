@@ -258,3 +258,48 @@ WHERE b.total_cost <= ALL (
 );
 ```
 ![](images/img15.png)
+
+
+6. IN
+
+6.1. **Рейсы, которые вылетают из Шереметьево**
+```sql
+SELECT 
+    fn.number as flight_number,
+    f.departure_time
+FROM flight f
+JOIN flight_number fn ON f.flight_number = fn.number
+WHERE fn.departure_airport_id IN (
+    SELECT iata_code 
+    FROM airport 
+    WHERE name = 'Шереметьево'
+);
+```
+![](images/img16.png)
+
+6.2. **Пассажиры, у которых есть билеты**
+```sql
+SELECT 
+    first_name,
+    last_name,
+    passport_series
+FROM passenger
+WHERE id IN (
+    SELECT passenger_id 
+    FROM ticket
+);
+```
+![](images/img17.png)
+
+6.3. **Авиакомпании, у которых есть самолеты**
+```sql
+SELECT 
+    name as airline_name,
+    iata_code
+FROM airline
+WHERE iata_code IN (
+    SELECT DISTINCT airline_iata_code 
+    FROM aircraft
+);
+```
+![](images/img18.png)

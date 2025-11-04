@@ -43,3 +43,59 @@ SELECT
 FROM airport a;
 ```
 ![](images/img3.png)
+
+
+2. FROM
+
+2.1. **Средняя стоимость бронирований по каждому клиенту**
+```sql
+SELECT 
+    client_info.first_name,
+    client_info.last_name,
+    client_info.avg_booking_cost
+FROM (
+    SELECT 
+        c.first_name,
+        c.last_name,
+        AVG(b.total_cost) as avg_booking_cost
+    FROM client c
+    JOIN booking b ON c.id = b.client_id
+    GROUP BY c.id, c.first_name, c.last_name
+) as client_info;
+```
+![](images/img4.png)
+
+2.2. **Рейсы с количеством доступных тарифов**
+```sql
+SELECT 
+    flight_data.flight_number,
+    flight_data.departure_time,
+    flight_data.fare_classes_count
+FROM (
+    SELECT 
+        fn.number as flight_number,
+        f.departure_time,
+        COUNT(fare.fare_class_id) as fare_classes_count
+    FROM flight f
+    JOIN flight_number fn ON f.flight_number = fn.number
+    JOIN fare ON f.id = fare.flight_id
+    GROUP BY fn.number, f.departure_time
+) as flight_data;
+```
+![](images/img5.png)
+
+2.3. **Авиакомпании и количество их самолетов**
+```sql
+SELECT 
+    airline_stats.airline_name,
+    airline_stats.aircraft_count
+FROM (
+    SELECT 
+        a.name as airline_name,
+        COUNT(ac.id) as aircraft_count
+    FROM airline a
+    LEFT JOIN aircraft ac ON a.iata_code = ac.airline_iata_code
+    GROUP BY a.name
+) as airline_stats;
+```
+![](images/img6.png)

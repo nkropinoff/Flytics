@@ -209,3 +209,52 @@ HAVING COUNT(t.id) > (
 );
 ```
 ![](images/img12.png)
+
+
+5. ALL
+
+5.1. **Самый дорогой тариф**
+```sql
+SELECT 
+    fc.description as fare_class,
+    f.price
+FROM fare f
+JOIN fare_class fc ON f.fare_class_id = fc.id
+WHERE f.price >= ALL (
+    SELECT price 
+    FROM fare
+);
+```
+![](images/img13.png)
+
+5.2. **Рейсы с самой низкой ценой в эконом-классе**
+```sql
+SELECT 
+    fn.number as flight_number,
+    f.price
+FROM fare f
+JOIN flight fl ON f.flight_id = fl.id
+JOIN flight_number fn ON fl.flight_number = fn.number
+WHERE f.fare_class_id = 1
+AND f.price <= ALL (
+    SELECT price 
+    FROM fare 
+    WHERE fare_class_id = 1
+);
+```
+![](images/img14.png)
+
+5.3. **Самое дешевое бронирование**
+```sql
+SELECT 
+    c.first_name,
+    c.last_name,
+    b.total_cost
+FROM booking b
+JOIN client c ON b.client_id = c.id
+WHERE b.total_cost <= ALL (
+    SELECT total_cost 
+    FROM booking
+);
+```
+![](images/img15.png)

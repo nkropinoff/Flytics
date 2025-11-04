@@ -150,3 +150,62 @@ WHERE id IN (
 );
 ```
 ![](images/img9.png)
+
+
+4. HAVING
+
+4.1. **Клиенты, у которых средняя стоимость бронирований выше общей средней**
+```sql
+SELECT 
+    c.first_name,
+    c.last_name,
+    AVG(b.total_cost) as avg_booking_cost
+FROM client c
+JOIN booking b ON c.id = b.client_id
+GROUP BY c.id, c.first_name, c.last_name
+HAVING AVG(b.total_cost) > (
+    SELECT AVG(total_cost) 
+    FROM booking
+);
+```
+![](images/img10.png)
+
+4.2. **Авиакомпании, у которых количество самолетов больше среднего**
+```sql
+SELECT 
+    a.name as airline_name,
+    COUNT(ac.id) as aircraft_count
+FROM airline a
+LEFT JOIN aircraft ac ON a.iata_code = ac.airline_iata_code
+GROUP BY a.name
+HAVING COUNT(ac.id) > (
+    SELECT AVG(aircraft_count) 
+    FROM (
+        SELECT COUNT(id) as aircraft_count
+        FROM aircraft
+        GROUP BY airline_iata_code
+    ) as avg_table
+);
+```
+![](images/img11.png)
+
+4.3. **Рейсы, на которые продано билетов больше среднего**
+```sql
+SELECT 
+    f.id,
+    fn.number as flight_number,
+    COUNT(t.id) as tickets_sold
+FROM flight f
+JOIN flight_number fn ON f.flight_number = fn.number
+LEFT JOIN ticket t ON f.id = t.flight_id
+GROUP BY f.id, fn.number
+HAVING COUNT(t.id) > (
+    SELECT AVG(ticket_count) 
+    FROM (
+        SELECT COUNT(id) as ticket_count
+        FROM ticket
+        GROUP BY flight_id
+    ) as ticket_stats
+);
+```
+![](images/img12.png)

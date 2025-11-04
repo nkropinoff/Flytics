@@ -401,3 +401,127 @@ WHERE EXISTS (
 );
 ```
 ![](images/img24.png)
+
+
+9. Подзапрос с несколькими столбцами
+
+9.1. **Билеты с такими же данными пассажира, как в определенном бронировании**
+```sql
+SELECT 
+    t.seat_number,
+    t.flight_id
+FROM ticket t
+WHERE (t.passenger_id, t.booking_id) IN (
+    SELECT passenger_id, booking_id 
+    FROM ticket 
+    WHERE seat_number = 'A1'
+);
+```
+![](images/img25.png)
+
+9.2. **Рейсы с таким же маршрутом, как определенный рейс**
+```sql
+SELECT 
+    fn.number as flight_number,
+    fn.departure_airport_id,
+    fn.arrival_airport_id
+FROM flight_number fn
+WHERE (fn.departure_airport_id, fn.arrival_airport_id) IN (
+    SELECT departure_airport_id, arrival_airport_id 
+    FROM flight_number 
+    WHERE number = 'SU101'
+);
+```
+![](images/img26.png)
+
+9.3. **Тарифы с такой же комбинацией рейса и класса, как у самых дорогих**
+```sql
+SELECT 
+    f.flight_id,
+    fc.description as fare_class,
+    f.price
+FROM fare f
+JOIN fare_class fc ON f.fare_class_id = fc.id
+WHERE (f.flight_id, f.fare_class_id) IN (
+    SELECT flight_id, fare_class_id 
+    FROM fare 
+    WHERE price > 40000
+);
+```
+![](images/img27.png)
+
+
+10. Коррелированные подзапросы
+
+10.1. **Клиенты с количеством их бронирований**
+```sql
+SELECT 
+    first_name,
+    last_name,
+    email,
+    (
+        SELECT COUNT(*) 
+        FROM booking b 
+        WHERE b.client_id = c.id
+    ) as bookings_count
+FROM client c;
+```
+![](images/img28.png)
+
+10.2. **Рейсы с количеством проданных билетов**
+```sql
+SELECT 
+    fn.number as flight_number,
+    f.departure_time,
+    (
+        SELECT COUNT(*) 
+        FROM ticket t 
+        WHERE t.flight_id = f.id
+    ) as tickets_sold
+FROM flight f
+JOIN flight_number fn ON f.flight_number = fn.number;
+```
+![](images/img29.png)
+
+10.3. **Аэропорты с количеством вылетающих рейсов**
+```sql
+SELECT 
+    a.iata_code,
+    a.name as airport_name,
+    (
+        SELECT COUNT(*) 
+        FROM flight_number fn 
+        WHERE fn.departure_airport_id = a.iata_code
+    ) as departing_flights_count
+FROM airport a;
+```
+![](images/img30.png)
+
+10.4. **Авиакомпании с количеством их самолетов**
+```sql
+SELECT 
+    name as airline_name,
+    iata_code,
+    (
+        SELECT COUNT(*) 
+        FROM aircraft ac 
+        WHERE ac.airline_iata_code = a.iata_code
+    ) as aircraft_count
+FROM airline a;
+```
+![](images/img31.png)
+
+10.5. **Пассажиры с количеством их билетов**
+```sql
+SELECT 
+    first_name,
+    last_name,
+    passport_series,
+    (
+        SELECT COUNT(*) 
+        FROM ticket t 
+        WHERE t.passenger_id = p.id
+    ) as tickets_count
+FROM passenger p;
+```
+![](images/img32.png)

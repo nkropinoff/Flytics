@@ -284,3 +284,201 @@ ORDER BY fc.description, f.price;
 ```
 
 ![](images/Pasted%20image%2020251110235522.png)
+
+6. PARTITION BY + ORDER BY
+6.1. Для каждого клиента рассчитать нарастающий итог стоимости всех его бронирований, упорядоченных по дате.
+```sql
+SELECT
+	client_id,
+	sum(total_cost) OVER (
+		PARTITION BY client_id
+		ORDER BY booking_date
+	)
+FROM booking;
+```
+![](images/Pasted%20image%2020251111180945.png)
+6.2 Для каждого тарифа на рейс определить, насколько его цена отличается от средней цены всех тарифов на этот же самый рейс.
+```sql
+SELECT
+	f.flight_number,
+	f.departure_time,
+	tpf.tickets_sold,
+	SUM(tpf.tickets_sold) OVER (
+		PARTITION BY f.flight_number
+		ORDER BY f.departure_time
+	) 
+FROM flight AS f
+JOIN (
+	SELECT 
+		flight_id,
+		COUNT(id) AS tickets_sold
+	FROM ticket
+	GROUP BY flight_id
+	) AS tpf ON f.id = tpf.flight_id;
+```
+![](images/Pasted%20image%2020251111183210.png)
+
+7. RANGE / ROWS
+7.1 Для каждого бронирования показать суммарную стоимость всех бронирований этого же клиента, которые были сделаны в тот же день.
+```sql
+SELECT 
+	client_id,
+	booking_date,
+	total_cost,
+	SUM(total_cost) OVER (
+		PARTITION BY client_id
+		ORDER BY CAST(booking_date AS DATE)
+		RANGE BETWEEN CURRENT ROW AND CURRENT ROW
+	)
+FROM booking
+```
+![](images/Pasted%20image%2020251111190337.png)
+
+7.2 Для каждого тарифа на рейс найти среднюю цену всех тарифов на этот же рейс, чья цена отличается от цены текущего тарифа не более чем на 5000.
+```sql
+SELECT 
+	flight_id,
+	price,
+	ROUND (AVG(price) OVER (
+		PARTITION BY flight_id
+		ORDER BY price
+		RANGE BETWEEN 5000 PRECEDING AND 5000 FOLLOWING
+	), 2) AS avg_price
+FROM fare
+```
+![](images/Pasted%20image%2020251111191323.png)
+7.3 Для каждого клиента рассчитать среднюю стоимость его последних **трех** бронирований, включая текущее. 
+```sql
+SELECT
+    client_id,
+    booking_date,
+    total_cost,
+    ROUND(
+        AVG(total_cost) OVER (
+            PARTITION BY client_id
+            ORDER BY booking_date
+            ROWS BETWEEN 2 PRECEDING AND CURRENT ROW
+        ), 2
+    ) AS avg_last_3_bookings
+FROM
+    booking
+```
+![](images/Pasted%20image%2020251111191833.png])
+	2.4 Для каждого номера рейса вывести дату вылета, количество проданных билетов на эту дату, а также скользящее среднее по количеству проданных билетов, рассчитанное по текущему и двум предыдущим рейсам с тем же номером.
+```sql
+WITH tickets_per_flight AS (
+    SELECT
+        flight_id,
+        COUNT(id) AS tickets_sold
+    FROM
+        ticket
+    GROUP BY
+        flight_id
+)
+
+SELECT
+    f.flight_number,
+    f.departure_time,
+    tpf.tickets_sold,
+    ROUND(
+        AVG(tpf.tickets_sold) OVER (
+            PARTITION BY f.flight_number
+            ORDER BY f.departure_time
+            ROWS BETWEEN 2 PRECEDING AND CURRENT ROW
+        ), 2
+    ) AS moving_avg_tickets_last_3_days
+FROM
+    flight AS f
+JOIN
+    tickets_per_flight AS tpf ON f.id = tpf.flight_id
+ORDER BY
+    f.flight_number, f.departure_time;
+```
+![](images/Pasted%20image%2020251111193516.png)
+
+8. ROW_NUMBER, RANK, DENSE_RANK
+8.1 Пронумеровать всех пассажиров по дате их рождения от самого старшего к самому младшему.
+```sql
+SELECT
+    first_name,
+    last_name,
+    birthdate,
+    ROW_NUMBER() OVER (ORDER BY birthdate ASC) AS age_rank
+FROM
+    passenger;
+```
+![](images/Pasted%20image%2020251111193951.png)
+
+8.2 Ранжировать тарифы каждого рейса по их цене.
+```sql
+SELECT
+    flight_id,
+    price,
+    RANK() OVER (PARTITION BY flight_id ORDER BY price ASC) AS price_rank
+FROM
+    fare;
+```
+![](images/Pasted%20image%2020251111194140.png)
+
+8.3  Присвоить ранг самолетам каждой авиакомпании по вместимости их моделей.
+```sql
+SELECT
+    al.name AS airline_name,
+    am.model,
+    am.capacity,
+    DENSE_RANK() OVER (PARTITION BY ac.airline_iata_code ORDER BY am.capacity DESC) AS capacity_rank
+FROM
+    aircraft AS ac
+JOIN
+    aircraft_model AS am ON ac.model = am.model
+JOIN
+    airline AS al ON ac.airline_iata_code = al.iata_code;
+```
+![](images/Pasted%20image%2020251111194636.png)
+9. LAG, LEAD, FIRST_VALUE, LAST_VALUE
+9.1 Для каждого бронирования клиента вывести его стоимость и стоимость предыдущего бронирования этого же клиента.
+```sql
+SELECT
+    client_id,
+    booking_date,
+    total_cost,
+    LAG(total_cost, 1, 0) OVER (PARTITION BY client_id ORDER BY booking_date) AS previous_booking_cost
+FROM
+    booking;
+```
+![](images/Pasted%20image%2020251111201556.png)
+9.2 Для каждого рейса с определенным номером вывести время его вылета и время вылета следующего рейса с тем же номером.
+```sql
+SELECT
+    flight_number,
+    departure_time,
+    LEAD(departure_time) OVER (PARTITION BY flight_number ORDER BY departure_time) AS next_flight_time
+FROM
+    flight;
+```
+![](images/Pasted%20image%2020251111201721.png)
+9.3 Для каждого бронирования клиента отобразить его стоимость, а также стоимость самого первого бронирования этого клиента.
+```sql
+SELECT
+    client_id,
+    booking_date,
+    total_cost,
+    FIRST_VALUE(total_cost) OVER (PARTITION BY client_id ORDER BY booking_date) AS first_booking_cost
+FROM
+    booking;
+```
+![](images/Pasted%20image%2020251111201836.png)
+9.4 Для каждого тарифа на рейс показать его цену и цену самого дорогого тарифа на этом же рейсе.
+```sql
+SELECT
+    flight_id,
+    price,
+    LAST_VALUE(price) OVER (
+        PARTITION BY flight_id
+        ORDER BY price
+        ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
+    ) AS most_expensive_fare
+FROM
+    fare;
+```
+![](images/Pasted%20image%2020251111202030.png)

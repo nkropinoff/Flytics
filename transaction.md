@@ -37,3 +37,11 @@ COMMIT;
 Создаем нового пассажира и создаем билет для него
 ![](images/img43.png)
 ![](images/img44.png)
+
+2.1 ROLLBACK
+![](images/img45.png)
+![](images/img46.png)
+
+2.2 ROLLBACK
+![](images/img47.png)
+![](images/img48.png)

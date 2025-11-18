@@ -135,6 +135,7 @@ COMMIT;
 
 ### 1.1 Данные до транзакций:
 ![](images/Pasted%20image%2020251118202901.png)
+
 **1.1 READ UNCOMMITED**
 ```sql
 -- T1 --
@@ -219,6 +220,7 @@ WHERE id = 3;
 ```
 #### Вывод T1
 ![](images/Pasted%20image%2020251118205906.png)
+
 ```sql
 -- T2 --
 BEGIN TRANSACTION ISOLATION LEVEL READ COMMITTED;
@@ -270,6 +272,7 @@ WHERE last_name LIKE 'Sorokin%';
 COMMIT;
 ```
 ![](images/Pasted%20image%2020251118212823.png)
+
 *Количество останется тем же, что и в первом SELECT, потому что T1 не видит новые строки, вставленные после начала её транзакции — фантома в PostgreSQL на этом уровне нет*
 
 ## Задание 5: «Смоделируй конфликт: две транзакции вставляют одинаковые данные»
@@ -299,6 +302,7 @@ COMMIT;
 ```
 #### После T1 данные вставлены
 ![](images/Pasted%20image%2020251118221023.png)
+
 #### Во второй транзакции получаем ошибку
 ![](images/Pasted%20image%2020251118221123.png)
 

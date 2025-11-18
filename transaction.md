@@ -129,3 +129,230 @@ SELECT * FROM booking WHERE client_id = 3 ORDER BY booking_date DESC LIMIT 1;
 
 COMMIT;
 ```
+
+
+## Задание 1: «Проверь, можно ли увидеть грязные данные»
+
+### 1.1 Данные до транзакций:
+![](images/Pasted%20image%2020251118202901.png)
+**1.1 READ UNCOMMITED**
+```sql
+-- T1 --
+BEGIN TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+UPDATE client
+SET first_name = 'Uncommited Egor'
+WHERE id = 1;
+```
+
+```sql
+-- T2 --
+BEGIN TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+SELECT id, first_name FROM client WHERE id = 1;
+COMMIT;
+```
+#### Вывод второй транзакции
+![](images/Pasted%20image%2020251118203515.png)
+
+*В PostgreSQL грязные данные не читаются даже на уровне READ UNCOMMITED.*
+
+**1.2 READ COMMITED**
+```sql
+-- T1 --
+BEGIN TRANSACTION ISOLATION LEVEL READ COMMITTED;
+UPDATE client
+SET first_name = 'Another Uncommited Egor'
+WHERE id = 1;
+```
+
+```sql
+-- T2 --
+BEGIN TRANSACTION ISOLATION LEVEL READ COMMITTED;
+SELECT id, first_name FROM client WHERE id = 1;
+COMMIT;
+```
+#### Вывод второй транзакции
+![](images/Pasted%20image%2020251118203819.png)
+
+*В PostgreSQL грязные данные не читаются на уровне READ COMMITED.*
+## Задание 2: «Покажи неповторяющееся чтение»
+### 2.1 
+```sql
+-- T1: 1 SELECT --
+BEGIN TRANSACTION ISOLATION LEVEL READ COMMITTED;
+SELECT payment_status_id
+FROM payment
+WHERE id = 1; 
+```
+#### После 1 SELECT в T1
+![](images/Pasted%20image%2020251118205147.png)
+
+```sql
+-- T2 --
+BEGIN TRANSACTION ISOLATION LEVEL READ COMMITTED;
+UPDATE payment
+SET payment_status_id = 3
+WHERE id = 1;
+COMMIT;
+```
+
+```sql
+-- T1: 2 SELECT AFTER T2 --
+SELECT payment_status_id
+FROM payment
+WHERE id = 1;
+COMMIT;
+```
+#### После 2 SELECT в T1
+![](images/Pasted%20image%2020251118205403.png)
+
+*На уровне READ COMMITTED наблюдаем неповторяющееся чтение.*
+
+## Задание 3: «Проверь, что T1 не видит изменений от T2, пока не завершится»
+
+## 3.1
+```sql
+-- T1: START --
+BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ; 
+SELECT available_seats 
+FROM fare 
+WHERE id = 3;
+```
+#### Вывод T1
+![](images/Pasted%20image%2020251118205906.png)
+```sql
+-- T2 --
+BEGIN TRANSACTION ISOLATION LEVEL READ COMMITTED;
+UPDATE fare
+SET available_seats = available_seats - 10
+WHERE id = 3;
+COMMIT;
+-- IN DATABASE VALUE CURRENT VALUE IS 80
+```
+
+```sql
+-- T1: END --
+SELECT available_seats
+FROM fare
+WHERE id = 3;
+COMMIT;
+```
+#### Вывод T1
+![](images/Pasted%20image%2020251118210252.png)
+
+*Видим, что на уровне REPEATABLE READ транзакция видит данные такими какие они были на момент ее начала (на момент снимка) до ее завершения.*
+## Задание 4: «Покажи фантомное чтение через INSERT в T2»
+## 4.1
+```sql
+-- T1: START --
+BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+SELECT COUNT(*) 
+FROM client 
+WHERE last_name LIKE 'Sorokin%';
+```
+#### После T1
+![](images/Pasted%20image%2020251118211935.png)
+
+```sql
+-- T2 --
+BEGIN TRANSACTION ISOLATION LEVEL READ COMMITTED;
+INSERT INTO client (first_name, last_name, email, password_hash) 
+VALUES ('test', 'SorokinNEW', 'test@example.com', 'x'); 
+COMMIT;
+```
+#### В самой базе после T2
+![](images/Pasted%20image%2020251118212640.png)
+
+```sql
+-- T1: END --
+SELECT COUNT(*) 
+FROM client 
+WHERE last_name LIKE 'Sorokin%';
+COMMIT;
+```
+![](images/Pasted%20image%2020251118212823.png)
+*Количество останется тем же, что и в первом SELECT, потому что T1 не видит новые строки, вставленные после начала её транзакции — фантома в PostgreSQL на этом уровне нет*
+
+## Задание 5: «Смоделируй конфликт: две транзакции вставляют одинаковые данные»
+
+### 5.1
+
+```sql
+-- T1 -- 
+BEGIN TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+
+INSERT INTO client (first_name, last_name, email, password_hash)
+VALUES ('firstname', 'lastname', 'serializable@example.com', 'x');
+```
+
+```sql
+-- T2 --
+BEGIN TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+
+INSERT INTO client (first_name, last_name, email, password_hash)
+VALUES ('firstname2', 'lastname2', 'serializable@example.com', 'x2');
+-- waiting for the query to complete (because of uncommited T1)
+```
+
+```sql
+-- T1 --
+COMMIT;
+```
+#### После T1 данные вставлены
+![](images/Pasted%20image%2020251118221023.png)
+#### Во второй транзакции получаем ошибку
+![](images/Pasted%20image%2020251118221123.png)
+
+*В двух параллельных транзакциях на уровне SERIALIZABLE обе попытались вставить клиента с одинаковым уникальным `email`.  
+После коммита первой транзакции вторая получила ошибку о нарушении уникального ограничения.*
+## Задание 6: «Поймай ошибку could not serialize access due to concurrent update и повтори транзакцию»
+
+### 6.1
+#### До транзакций:
+![](images/Pasted%20image%2020251118214102.png)
+
+```sql
+-- T1 --
+BEGIN TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+SELECT available_seats FROM fare WHERE id = 1; -- 80
+UPDATE fare
+SET available_seats = available_seats - 1
+WHERE id = 1;
+```
+
+```sql
+-- T2 --
+BEGIN TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+SELECT available_seats FROM fare WHERE id = 1; -- 80
+UPDATE fare
+SET available_seats = available_seats - 1
+WHERE id = 1;
+```
+
+```sql
+-- T1 --
+COMMIT; -- success
+```
+
+```sql
+-- T2 -- 
+COMMIT; -- error
+```
+
+#### После попытки сделать коммит второй транзакции
+![](images/Pasted%20image%2020251118215152.png)
+
+```sql
+-- T2: RETRY --
+ROLLBACK;
+
+BEGIN TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+SELECT available_seats FROM fare WHERE id = 1;
+UPDATE fare
+SET available_seats = available_seats - 1
+WHERE id = 1;
+COMMIT;
+```
+#### Имеем после повторной 2 транзакции
+![](images/Pasted%20image%2020251118215612.png)
+
+*Две транзакции T1 и T2 на уровне SERIALIZABLE одновременно прочитали одинаковое значение `available_seats` для `fare.id = 1` и обе попытались его уменьшить. T1 успешно закоммитилась, а T2 получила ошибку `could not serialize access due to concurrent update` . После повторного запуска T2 уже с учётом нового значения `available_seats` транзакция прошла успешно, то есть конфликт сериализации был решён повтором операции.*

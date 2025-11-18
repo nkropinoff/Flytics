@@ -19,3 +19,21 @@ COMMIT;
 
 ![](images/img41.png)
 ![](images/img42.png)
+
+1.2 BEGIN COMMIT
+```sql
+BEGIN;
+
+INSERT INTO passenger (first_name, last_name, birthdate, passport_series, passport_number)
+VALUES ('Sergey', 'Kuznetsov', '1991-03-20', '5566', '778899');
+
+INSERT INTO ticket (seat_number, booking_id, passenger_id, fare_id, flight_id)
+SELECT 'C8', 2, id, 1, 1
+FROM passenger 
+WHERE passport_series = '5566' AND passport_number = '778899';
+
+COMMIT;
+```
+Создаем нового пассажира и создаем билет для него
+![](images/img43.png)
+![](images/img44.png)

@@ -360,3 +360,274 @@ COMMIT;
 ![](images/Pasted%20image%2020251118215612.png)
 
 *Две транзакции T1 и T2 на уровне SERIALIZABLE одновременно прочитали одинаковое значение `available_seats` для `fare.id = 1` и обе попытались его уменьшить. T1 успешно закоммитилась, а T2 получила ошибку `could not serialize access due to concurrent update` . После повторного запуска T2 уже с учётом нового значения `available_seats` транзакция прошла успешно, то есть конфликт сериализации был решён повтором операции.*
+
+
+## Вторая часть уровней изоляции
+
+---
+
+#### **READ UNCOMMITTED / READ COMMITTED:**
+
+T1
+```sql
+BEGIN TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+
+UPDATE payment_status
+SET description ='DIRTY TEST A'
+WHERE id = 1; -- id PENDING статуса
+
+-- COMMIT не делаем
+```
+
+T2
+```sql
+BEGIN TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+
+SELECT id, description
+FROM payment_status
+WHERE id = 1;
+
+COMMIT;
+```
+
+ В первой транзакции попытка изменить description у payment_status с id = 1, но COMMIT не делаем. Т.к по умолчанию READ COMMITTED грязные данные во второй транзакции не отображаются
+
+![](images/Pasted%20image%2020251118214757.png)
+
+READ COMMITTED — такой же результат
+
+T1
+```sql
+BEGIN TRANSACTION ISOLATION LEVEL READ COMMITTED;
+
+UPDATE payment_status
+SET description ='DIRTY TEST B'
+WHERE id = 1; -- id PENDING статуса
+
+-- COMMIT не делаем
+```
+
+T2
+```sql
+BEGIN TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+
+SELECT id, description
+FROM payment_status
+WHERE id = 1;
+
+COMMIT;
+```
+
+![](images/Pasted%20image%2020251118214757.png)
+
+---
+
+#### **READ COMMITTED - неповторяющееся чтение**
+
+T1
+
+```sql
+BEGIN TRANSACTION ISOLATION LEVEL READ COMMITTED;
+
+-- Часть 1
+SELECT description
+FROM flight_status
+WHERE id = 2; -- id status - 'Delayed'
+
+-- Часть 2
+SELECT description
+FROM flight_status
+WHERE id = 2;
+
+COMMIT;
+```
+
+T2
+```sql
+BEGIN TRANSACTION ISOLATION LEVEL READ COMMITTED;
+
+UPDATE flight_status
+SET description = 'Late'
+WHERE id = 2;
+
+COMMIT;
+```
+
+После первой части T1
+![](images/Pasted%20image%2020251118215708.png)
+
+-- Выполняем T2
+
+После второй части T1
+![](images/Pasted%20image%2020251118215914.png)
+
+То есть  в T1 сначала данные до второй транзакции, в T2 изменяем данные, делаем коммит, теперь в T1 делаем повторный запрос, данные другие - неповторяющееся чтение
+
+---
+
+#### **REPEATABLE READ** 
+
+**T1 не видит изменений от T2**
+Проделаем то же самое но уже с REPEATABLE READ
+
+T1
+```sql
+BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+
+-- Часть 1
+SELECT description
+FROM flight_status
+WHERE id = 2; -- id status - 'Delayed'
+
+-- Часть 2
+SELECT description
+FROM flight_status
+WHERE id = 2;
+
+COMMIT;
+```
+
+T2
+```sql
+BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+
+UPDATE flight_status
+SET description = 'Late'
+WHERE id = 2;
+
+COMMIT;
+```
+
+Выполняем первую часть T1
+
+![](images/Pasted%20image%2020251118220936.png)
+
+-- Выполняем  T2
+
+Выполняем вторую часть T1
+
+![](images/Pasted%20image%2020251118220936.png)
+
+Итог: данные не поменялись, так как REPEATABLE READ работает с версией, которую зафиксировал при первом запросе. Даже после выполнение T2
+
+
+**Покажи фантомное чтение через INSERT в T2.**
+
+T1
+```sql
+BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+
+-- Часть 1
+SELECT COUNT(*) AS cnt
+FROM booking
+WHERE client_id = 1;
+
+-- Часть 2
+SELECT COUNT(*) AS cnt
+FROM booking
+WHERE client_id = 1;
+
+COMMIT;
+```
+
+T2
+```sql
+BEGIN;
+
+INSERT INTO booking (client_id, booking_date, total_cost, status_id)
+VALUES (1, '2025-12-01', 100000, 1);
+
+COMMIT;
+```
+
+Выполняем первую часть T1
+
+![](images/Pasted%20image%2020251118222432.png)
+
+-- Выполняем  T2
+
+Выполняем вторую часть T1
+
+![](images/Pasted%20image%2020251118222504.png)
+
+Итог: количество бронирований изменилось, фантомное чтение
+
+---
+
+#### **SERIALIZABLE**
+
+**Смоделируй конфликт: две транзакции вставляют одинаковые данные.**
+
+T1
+```sql
+BEGIN TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+
+INSERT INTO payment_method (id, name) VALUES (6, 'MirPay'); -- новый id и метод
+
+COMMIT;
+```
+
+T2
+```sql
+BEGIN TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+
+INSERT INTO payment_method (id, name) VALUES (7, 'MirPay'); 
+
+COMMIT;
+```
+
+Выполняем вставку T1 без коммита, потом вставку T2 без коммита
+При COMMIT T1 данные из T1 вставились, а в T2 Получили:
+
+![](images/Pasted%20image%2020251118223529.png)
+
+Итог: при параллельном выполнении, возникла ошибка и одна из транзакций откатилась и выбросила ошибку, теперь можно повторно вставить данные, но уже другие
+
+
+
+**Поймай ошибку could not serialize access due to concurrent update и повтори транзакцию.**
+
+T1
+```sql
+BEGIN TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+
+SELECT payment_status_id
+FROM payment
+WHERE id = 2; -- смотрим платеж с id =2
+
+UPDATE payment
+SET payment_status_id = 1 -- меняем статус платежа с id = 2
+WHERE id = 2;
+
+COMMIT;
+```
+
+T2
+```sql
+BEGIN TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+
+SELECT payment_status_id
+FROM payment
+WHERE id = 2; -- смотрим платеж с id =2
+
+UPDATE payment
+SET payment_status_id = 3 -- меняем статус платежа с id = 2
+WHERE id = 2;
+
+COMMIT;
+```
+
+Выполняем select T1
+  
+![](images/Pasted%20image%2020251118224341.png)
+
+Обновляем данные в T1 (update). После чего делаем COMMIT
+
+Выполняем select T2 
+![](images/Pasted%20image%2020251118224644.png)
+Все еще старые данные, так как снимок БД при запуске транзакции
+
+Пытаемся выполнить update в T2:
+![](images/Pasted%20image%2020251118224804.png)
+
+Итог: Поймали ошибку, когда транзакции начали параллельно работать в режиме SERIALIZABLE, одна изменила данные, а когда вторая попыталась изменить эти же данные, выдало ошибку т.к эти данные уже изменили в другой транзакции. После этого можно попробовать изменить другие данные

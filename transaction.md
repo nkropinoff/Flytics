@@ -210,7 +210,7 @@ COMMIT;
 
 ## Задание 3: «Проверь, что T1 не видит изменений от T2, пока не завершится»
 
-## 3.1
+### 3.1
 ```sql
 -- T1: START --
 BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ; 
@@ -243,7 +243,7 @@ COMMIT;
 
 *Видим, что на уровне REPEATABLE READ транзакция видит данные такими какие они были на момент ее начала (на момент снимка) до ее завершения.*
 ## Задание 4: «Покажи фантомное чтение через INSERT в T2»
-## 4.1
+### 4.1
 ```sql
 -- T1: START --
 BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ;

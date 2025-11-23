@@ -134,3 +134,50 @@ SELECT calculate_occupancy_rate(130, 0);
 ```
 ![](images/img106.png)
 ![](images/img107.png)
+
+
+8. RAISE
+
+8.1.
+```sql
+CREATE OR REPLACE FUNCTION safe_insert_airline_with_raise(
+    p_iata_code VARCHAR(3),
+    p_name VARCHAR(100)
+)
+RETURNS VOID
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    INSERT INTO airline (iata_code, name)
+    VALUES (p_iata_code, p_name);
+    
+    RAISE NOTICE 'Авиакомпания успешно добавлена';
+EXCEPTION
+    WHEN unique_violation THEN
+        RAISE NOTICE 'Авиакомпания уже существует!';
+END;
+$$;
+SELECT safe_insert_airline_with_raise('TST', 'Test Airlines');
+```
+![](images/img108.png)
+
+8.2.
+```sql
+CREATE OR REPLACE FUNCTION calculate_occupancy_rate_with_raise(
+    p_passengers INT,
+    p_capacity INT
+)
+RETURNS NUMERIC
+LANGUAGE plpgsql
+AS $$
+BEGIN    
+    RETURN (p_passengers::NUMERIC / p_capacity::NUMERIC) * 100;
+EXCEPTION
+    WHEN division_by_zero THEN
+        RAISE NOTICE 'Деление на ноль';
+        RETURN 0;
+END;
+$$;
+SELECT calculate_occupancy_rate_with_raise(150, 0);
+```
+![](images/img109.png)

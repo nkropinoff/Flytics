@@ -29,4 +29,4 @@ SELECT total_cost, categorize_booking_price(15) AS booking_price_category
 FROM booking
 WHERE id = 15
 ```
-!['images/img101.png']
+![](images/img101.png)

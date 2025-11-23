@@ -58,4 +58,4 @@ $$;
 CALL create_test_clients(3);
 SELECT * FROM client
 ```
-![]('images/img102.png')
+![](images/img102.png)

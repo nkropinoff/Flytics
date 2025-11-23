@@ -60,7 +60,7 @@ SELECT * FROM client
 ```
 ![](images/img102.png)
 
-6.2 Статистика по классам перелетов.
+6.2. Статистика по классам перелетов.
 ```sql
 CREATE OR REPLACE FUNCTION count_fare_classes_stats()
 RETURNS TABLE(class_id INT, total_flights BIGINT, avg_price NUMERIC)
@@ -87,3 +87,28 @@ $$;
 SELECT * FROM count_fare_classes_stats();
 ```
 ![](images/img103.png)
+
+
+7. EXCEPTION
+
+7.1. Попытка добавить уже существующую авиакомпанию.
+```sql
+CREATE OR REPLACE FUNCTION safe_insert_airline(
+    p_iata_code VARCHAR(3),
+    p_name VARCHAR(100)
+)
+RETURNS VOID
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    INSERT INTO airline (iata_code, name)
+    VALUES (p_iata_code, p_name);
+EXCEPTION
+    WHEN unique_violation THEN
+        NULL;
+END;
+$$;
+SELECT safe_insert_airline('TST', 'Test Airlines');
+```
+![](images/img104.png)
+![](images/img105.png)

@@ -112,3 +112,25 @@ SELECT safe_insert_airline('TST', 'Test Airlines');
 ```
 ![](images/img104.png)
 ![](images/img105.png)
+
+7.2. Попытка деления на ноль.
+```sql
+CREATE OR REPLACE FUNCTION calculate_occupancy_rate(
+    p_passengers INT,
+    p_capacity INT
+)
+RETURNS NUMERIC
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN (p_passengers::NUMERIC / p_capacity::NUMERIC) * 100;
+EXCEPTION
+    WHEN division_by_zero THEN
+        RETURN 0;
+END;
+$$;
+SELECT calculate_occupancy_rate(150, 200);
+SELECT calculate_occupancy_rate(130, 0);
+```
+![](images/img106.png)
+![](images/img107.png)

@@ -30,3 +30,32 @@ FROM booking
 WHERE id = 15
 ```
 ![](images/img101.png)
+
+
+6. WHILE
+
+6.1. Создание тестовых клиентов с помощью цикла.
+
+```sql
+CREATE OR REPLACE PROCEDURE create_test_clients(count_clients INT)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    i INT := 1;
+BEGIN
+    WHILE i <= count_clients LOOP
+        INSERT INTO client (first_name, last_name, email, password_hash)
+        VALUES (
+            'TestFirstName' || i,
+            'TestLastName' || i,
+            'testclient' || i || '@example.com',
+            'hash' || i
+        );
+        i := i + 1;
+    END LOOP;
+END;
+$$;
+CALL create_test_clients(3);
+SELECT * FROM client
+```
+![]('images/img102.png')

@@ -59,3 +59,31 @@ CALL create_test_clients(3);
 SELECT * FROM client
 ```
 ![](images/img102.png)
+
+6.2 Статистика по классам перелетов.
+```sql
+CREATE OR REPLACE FUNCTION count_fare_classes_stats()
+RETURNS TABLE(class_id INT, total_flights BIGINT, avg_price NUMERIC)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    total_classes INT;
+    current_id INT := 1;
+BEGIN
+    SELECT COUNT(*) INTO total_classes FROM fare_class;
+    WHILE current_id <= total_classes LOOP
+        SELECT 
+            current_id,
+            COUNT(f.id),
+            AVG(f.price)
+        INTO class_id, total_flights, avg_price
+        FROM fare f 
+        WHERE f.fare_class_id = current_id;
+        RETURN NEXT;
+        current_id := current_id + 1;
+    END LOOP;
+END;
+$$;
+SELECT * FROM count_fare_classes_stats();
+```
+![](images/img103.png)

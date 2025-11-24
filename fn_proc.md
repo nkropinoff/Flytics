@@ -129,8 +129,139 @@ SELECT get_min_aircraft_capacity();
 
 ![](images/Pasted%20image%2020251123190536.png)
 
+**2.4 Подсчет количества бронирований клиента**
+```sql
+CREATE OR REPLACE FUNCTION count_bookings(clnt_id INT)
+RETURNS INT
+LANGUAGE plpgsql
+AS $$
+DECLARE 
+	bookings_count INT := 0;
+BEGIN
+	SELECT COUNT(*) INTO bookings_count
+	FROM booking 
+	WHERE client_id = clnt_id;
+	
+	RETURN bookings_count;
+END;
+$$;
 
-## Место для тебя НИКИТОСИК
+SELECT count_bookings(1);
+```
+
+![](images/Pasted%20image%2020251124205215.png)
+
+**2.5 Подсчет суммы стоимостей всех билетов оформленных на пассажира.**
+```sql
+CREATE OR REPLACE FUNCTION total_ticket_sum_by_passenger(pssngr_id INT)
+RETURNS INT
+LANGUAGE plpgsql
+AS $$
+DECLARE
+	total_sum INT := 0;
+BEGIN
+	SELECT COALESCE(SUM(f.price), 0) INTO total_sum
+	FROM ticket t JOIN fare f ON t.fare_id = f.id
+	WHERE t.passenger_id = pssngr_id;
+	RETURN total_sum;
+END;
+$$;
+
+SELECT total_ticket_sum_by_passenger(1);
+```
+
+![](images/Pasted%20image%2020251124205821.png)
+
+**2.6 Подсчет задерживающихся (`Delayed`) рейсов на определенную дату.**
+```sql
+CREATE OR REPLACE FUNCTION delayed_flights_count(date DATE)
+RETURNS INT
+LANGUAGE plpgsql
+AS $$
+DECLARE
+	flights_count INT;
+BEGIN
+	SELECT COUNT(*) INTO flights_count
+	FROM flight f JOIN flight_status s ON f.status_id = s.id
+	WHERE s.description = 'Delayed' AND CAST(f.arrival_time AS DATE) = date;
+	RETURN flights_count;
+END;
+$$;
+
+SELECT delayed_flights_count('2025-10-21');
+```
+
+![](images/Pasted%20image%2020251124211118.png)
+
+**2.7 Запрос просмотра всех функий**
+```sql
+SELECT routine_name
+FROM information_schema.routines
+WHERE routine_type = 'FUNCTION' AND routine_schema = 'public';
+```
+
+![](images/Pasted%20image%2020251124211508.png)
+
+**3.1 Вставить тестового пассажира если еще не существует**
+```sql
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM passenger WHERE passport_series = '0000' AND passport_number = '111111') THEN
+        INSERT INTO passenger(first_name, last_name, birthdate, passport_series, passport_number)
+        VALUES('Test', 'Passenger', '2000-01-01', '0000', '111111');
+    END IF;
+END
+$$;
+
+SELECT * FROM passenger WHERE passport_series = '0000' AND passport_number = '111111';
+```
+
+![](images/Pasted%20image%2020251124212038.png)
+
+**3.2  Сменить статус на `Delayed` для рейсов на которые не проданы билеты.**
+
+![](images/Pasted%20image%2020251124213424.png)
+
+```sql
+SELECT f.id FROM flight f JOIN flight_status s ON f.status_id = s.id WHERE s.description = 'Delayed';
+
+DO $$
+BEGIN
+	UPDATE flight
+	SET status_id = (SELECT s.id FROM flight_status s WHERE s.description = 'Delayed')
+	WHERE NOT EXISTS (
+		SELECT 1 FROM ticket t WHERE t.flight_id = flight.id
+	);
+END
+$$;
+
+SELECT f.id FROM flight f JOIN flight_status s ON f.status_id = s.id WHERE s.description = 'Delayed';
+```
+
+
+![](images/Pasted%20image%2020251124213456.png)
+
+**3.3 Удалить пассажиров, у которых ни одного купленного билета.**
+
+![](images/Pasted%20image%2020251124213948.png)
+
+```sql
+SELECT * FROM passenger WHERE id NOT IN (SELECT DISTINCT passenger_id FROM ticket);
+
+DO $$
+BEGIN
+    DELETE FROM passenger
+    WHERE id NOT IN (
+        SELECT DISTINCT passenger_id 
+        FROM ticket
+    );
+END;
+$$;
+
+SELECT * FROM passenger WHERE id NOT IN (SELECT DISTINCT passenger_id FROM ticket);
+```
+
+![](images/Pasted%20image%2020251124214142.png)
 
 
 4. IF

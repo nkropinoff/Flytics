@@ -46,3 +46,37 @@ VALUES (
 ```
 ![](images/img110.png)
 ![](images/img111.png)
+
+
+1.2. Автоматическое присвоение статуса pending при бронировании + проверка на правильность суммы.
+
+```sql
+CREATE OR REPLACE FUNCTION set_initial_booking_status()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.status_id IS NULL THEN
+        SELECT id INTO NEW.status_id 
+        FROM booking_status 
+        WHERE description = 'pending';
+    END IF;
+    IF NEW.total_cost <= 0 THEN
+        RAISE EXCEPTION 'Total cost must be greater than 0';
+    END IF;
+    
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+CREATE TRIGGER trigger_validate_booking
+    BEFORE INSERT ON booking
+    FOR EACH ROW
+    EXECUTE FUNCTION set_initial_booking_status();
+
+INSERT INTO booking (client_id, booking_date, total_cost, status_id)
+VALUES (
+    (SELECT id FROM client WHERE email = 'ivan@mail.ru'),
+    NOW(),
+    25000,
+    NULL
+);
+```
+![](images/img112.png)

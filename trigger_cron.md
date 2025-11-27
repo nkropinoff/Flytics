@@ -80,3 +80,48 @@ VALUES (
 );
 ```
 ![](images/img112.png)
+
+
+2. OLD
+
+2.1. Логирование удаленных из базы пассажиров.
+
+```sql
+CREATE TABLE IF NOT EXISTS passenger_archive (
+    id INT PRIMARY KEY,
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
+    birthdate DATE NOT NULL,
+    passport_series CHAR(4) NOT NULL,
+    passport_number CHAR(6) NOT NULL,
+    archived_at TIMESTAMPTZ DEFAULT NOW(),
+    archive_reason VARCHAR(100) DEFAULT 'Manual deletion'
+);
+
+CREATE OR REPLACE FUNCTION archive_deleted_passenger()
+RETURNS TRIGGER AS $$
+BEGIN
+    INSERT INTO passenger_archive 
+        (id, first_name, last_name, birthdate, passport_series, passport_number, archive_reason)
+    VALUES 
+        (OLD.id, OLD.first_name, OLD.last_name, OLD.birthdate, 
+         OLD.passport_series, OLD.passport_number, 'Manual deletion');
+    
+    RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_archive_passenger
+    BEFORE DELETE ON passenger
+    FOR EACH ROW
+    EXECUTE FUNCTION archive_deleted_passenger();
+
+INSERT INTO passenger (first_name, last_name, birthdate, passport_series, passport_number)
+VALUES ('Test', 'User', '1990-01-01', '1234', '567890')
+
+DELETE FROM passenger 
+WHERE passport_series = '1234' AND passport_number = '567890';
+
+SELECT * FROM passenger_archive;
+```
+![](images/img113.png)

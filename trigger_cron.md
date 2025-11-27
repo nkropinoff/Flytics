@@ -125,3 +125,58 @@ WHERE passport_series = '1234' AND passport_number = '567890';
 SELECT * FROM passenger_archive;
 ```
 ![](images/img113.png)
+
+2.2. Логирование изменения цены билетов.
+
+```sql
+CREATE TABLE IF NOT EXISTS price_change_log (
+    id SERIAL PRIMARY KEY,
+    fare_id INT NOT NULL,
+    old_price INT NOT NULL,
+    new_price INT NOT NULL,
+    change_date TIMESTAMPTZ DEFAULT NOW(),
+    change_type VARCHAR(20) NOT NULL
+);
+
+CREATE OR REPLACE FUNCTION log_price_changes()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF OLD.price <> NEW.price THEN
+        DECLARE
+            change_type VARCHAR(20);
+        BEGIN
+            IF NEW.price > OLD.price THEN
+                change_type := 'Price increase';
+            ELSE
+                change_type := 'Price decrease';
+            END IF;
+
+            INSERT INTO price_change_log (fare_id, old_price, new_price, change_type)
+            VALUES (OLD.id, OLD.price, NEW.price, change_type);
+        END;
+    END IF;
+    
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_log_price_changes
+    AFTER UPDATE ON fare
+    FOR EACH ROW
+    EXECUTE FUNCTION log_price_changes();
+
+INSERT INTO fare (flight_id, fare_class_id, price, available_seats)
+VALUES (
+    (SELECT id FROM flight LIMIT 1),
+    (SELECT id FROM fare_class WHERE description = 'First'),
+    100000,
+    25
+);
+
+UPDATE fare 
+SET price = 120000 
+WHERE id = (SELECT MAX(id) FROM fare);
+
+SELECT * FROM price_change_log;
+```
+![](images/img114.png)

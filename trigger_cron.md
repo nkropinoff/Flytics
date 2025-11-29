@@ -180,3 +180,166 @@ WHERE id = (SELECT MAX(id) FROM fare);
 SELECT * FROM price_change_log;
 ```
 ![](images/img114.png)
+
+
+3. BEFORE
+3.1 BEFORE INSERT: Валидация данных
+
+```sql
+CREATE OR REPLACE FUNCTION check_flight_dates() 
+RETURNS trigger AS $$
+BEGIN
+    IF NEW.arrival_time <= NEW.departure_time THEN
+        RAISE EXCEPTION 'Время прилета (%) должно быть позже времени вылета (%)', 
+            NEW.arrival_time, NEW.departure_time;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_check_flight_dates_before_insert
+BEFORE INSERT ON flight
+FOR EACH ROW
+EXECUTE FUNCTION check_flight_dates();
+
+INSERT INTO flight (flight_number, aircraft_id, departure_time, arrival_time, status_id) VALUES ('SU100', 1, NOW(), NOW() - INTERVAL '1 hour', 1);
+```
+
+![](images/Pasted%20image%2020251130010650.png)
+
+3.2 BEFORE UPDATE (Изменяем цену на 0, если статус бронирования отменен)
+
+```sql
+CREATE OR REPLACE FUNCTION clear_cost_on_cancel() 
+RETURNS trigger AS $$
+BEGIN
+    IF NEW.status_id = 3 AND OLD.status_id != 3 THEN
+        NEW.total_cost := 0; 
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_clear_cost_before_update
+BEFORE UPDATE ON booking
+FOR EACH ROW
+EXECUTE FUNCTION clear_cost_on_cancel();
+
+INSERT INTO booking (client_id, booking_date, status_id, total_cost) VALUES ((SELECT id FROM client LIMIT 1), NOW(), 1, 10000);
+
+UPDATE booking SET status_id = 3 WHERE total_cost = 10000;
+
+SELECT id, status_id, total_cost FROM booking WHERE status_id = 3;
+```
+
+![](images/Pasted%20image%2020251130011356.png)
+
+4. AFTER
+4.1 AFTER INSERT (логгирование)
+
+```sql
+CREATE OR REPLACE FUNCTION notify_new_ticket() 
+RETURNS trigger AS $$
+BEGIN
+    RAISE NOTICE 'Продан новый билет ID: %, Пассажир ID: %, Рейс ID: %', 
+        NEW.id, NEW.passenger_id, NEW.fare_id;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_notify_ticket_after_insert
+AFTER INSERT ON ticket
+FOR EACH ROW
+EXECUTE FUNCTION notify_new_ticket();
+
+INSERT INTO ticket (seat_number, booking_id, passenger_id, fare_id, flight_id) 
+VALUES (
+	'A3',
+	(SELECT id FROM booking LIMIT 1),
+	(SELECT id FROM passenger LIMIT 1),
+	(SELECT id FROM fare LIMIT 1),
+	(SELECT id FROM flight LIMIT 1)
+);
+```
+
+![](images/Pasted%20image%2020251130012313.png)
+
+4.2 AFTER UPDATE (Отслеживание смены фамилии)
+
+```sql
+CREATE OR REPLACE FUNCTION notify_name_change() 
+RETURNS trigger AS $$
+BEGIN
+    IF OLD.last_name <> NEW.last_name THEN
+        RAISE NOTICE 'Внимание! Пассажир сменил фамилию с % на %', 
+                     OLD.last_name, NEW.last_name;
+    END IF;
+    return NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER trg_passenger_name_change
+AFTER UPDATE ON passenger
+FOR EACH ROW
+EXECUTE FUNCTION notify_name_change();
+
+
+UPDATE passenger SET last_name = 'Messi' WHERE passport_number = '123456';
+```
+
+![](images/Pasted%20image%2020251130012844.png)
+
+5. ROW
+5.1 Автоматически генерируем email
+
+```sql
+CREATE OR REPLACE FUNCTION generate_email() RETURNS trigger AS $$
+BEGIN
+    IF NEW.email IS NULL THEN
+       NEW.email := LOWER(NEW.first_name) || '@flytics.com'; 
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE TRIGGER trg_gen_email
+BEFORE INSERT ON client
+FOR EACH ROW
+EXECUTE FUNCTION generate_email();
+
+INSERT INTO client (first_name, last_name, email, password_hash) VALUES 
+('Maria', 'Sidorova', null, 'secret_hash_1'),
+('Sergey', 'Kozlov', null, 'secret_hash_2');
+
+SELECT * FROM client;
+```
+
+![](images/Pasted%20image%2020251130014013.png)
+
+5.2 Проверка, что старый пароль не совпадает с новым
+
+```sql
+CREATE OR REPLACE FUNCTION check_password_change() 
+RETURNS trigger AS $$
+BEGIN
+    IF NEW.password_hash = OLD.password_hash THEN
+        RAISE EXCEPTION 'Новый пароль не может совпадать со старым!';
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER trg_check_pass
+BEFORE UPDATE ON client
+FOR EACH ROW
+EXECUTE FUNCTION check_password_change();
+
+UPDATE client
+SET password_hash = 'my_castom_hash'
+WHERE first_name = 'Ivan';
+
+SELECT * FROM client;
+```
+
+![](images/Pasted%20image%2020251130014439.png)

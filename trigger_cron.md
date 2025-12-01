@@ -1,3 +1,4 @@
+## 1
 1. NEW
 
 1.1. При создании рейса автоматически создаются тарифы для него.
@@ -343,3 +344,143 @@ SELECT * FROM client;
 ```
 
 ![](images/Pasted%20image%2020251130014439.png)
+
+6 STATEMENT
+6.1 Аудит удалений бронирований
+```sql
+CREATE TABLE booking_audit_log (
+    id SERIAL PRIMARY KEY,
+    operation_time TIMESTAMP DEFAULT now(),
+    user_name TEXT,
+    operation_type TEXT
+);
+
+CREATE OR REPLACE FUNCTION log_booking_deletion()
+RETURNS TRIGGER AS $$
+BEGIN
+    INSERT INTO booking_audit_log (user_name, operation_type)
+    VALUES (current_user, 'DELETE on booking table');
+    
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_log_booking_delete
+AFTER DELETE ON booking
+FOR EACH STATEMENT
+EXECUTE FUNCTION log_booking_deletion();
+
+DELETE FROM booking WHERE id = -1;
+SELECT * FROM booking_audit_log;
+```
+![](images/Pasted%20image%2020251201202545.png)
+
+6.2 Аудит обновления рейсов
+```sql
+CREATE TABLE flight_update_log (
+    id SERIAL PRIMARY KEY,
+    log_time TIMESTAMP DEFAULT now(),
+    operation_name TEXT,
+    details TEXT
+);
+
+CREATE OR REPLACE FUNCTION log_flightupdate()
+RETURNS TRIGGER AS $$
+BEGIN
+    INSERT INTO flight_update_log (operation_name, details)
+    VALUES (TG_OP, 'Rows of flight was updated');
+    
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_log_flight_changes
+AFTER UPDATE ON flight
+FOR EACH STATEMENT
+EXECUTE FUNCTION log_flight_update();
+
+UPDATE flight 
+SET status_id = 2 
+WHERE id IN (1, 2, 3);
+
+SELECT * FROM flight_update_log;
+```
+
+![](images/Pasted%20image%2020251201203012.png)
+
+## 2 
+Просмотр всех триггеров
+
+```sql
+SELECT * FROM pg_trigger;
+```
+![](images/Pasted%20image%2020251201203244.png)
+
+## 3
+3.1 Отмена брони если она не оплачена в течение 24 часов
+```sql
+SELECT cron.schedule(
+	'remove_expired_bookings',
+	'10 * * * *',
+	$$
+		UPDATE booking SET status_id = (SELECT id FROM booking_status WHERE description = 'cancelled')
+		WHERE status.id = (SELECT id FROM booking_status WHERE description = 'pending') AND booking_date < NOW() - interval '24 hours'
+	$$
+);
+```
+
+![](images/Pasted%20image%2020251201191717.png)
+
+3.2 Ежесуточный подсчет выручки
+```sql
+CREATE TABLE daily_revenue(
+	report_date DATE PRIMARY KEY,
+	total_amount BIGINT,
+	bookings_count BIGINT,
+	created_at TIMESTAMP DEFAULT NOW()
+);
+
+SELECT cron.schedule(
+	'count_daily_amout',
+	'0 3 * * *',
+	$$
+		INSERT INTO daily_revenue(report_date, total_amout, bookings_count) VALUES(
+			SELECT 
+				CURRENT_DATE - 1, -- вчера
+				COALESCE(SUM(price), 0),
+				COUNT(*)
+			FROM booking 
+			WHERE CAST(booking_date AS DATE) = CURRENT_DATE - 1 AND status_id = (SELECT id FROM booking_status WHERE description = 'completed');
+		);
+	$$
+);
+```
+![](images/Pasted%20image%2020251201193312.png)
+
+3.3 Авто-закрытие рейсов, после их вылета через 15 минут
+```sql
+SELECT cron.schedule(
+	'auto_close_flights',
+	'*/2 * * * *',
+	$$
+		UPDATE flight SET status_id = (SELECT id FROM flight_status WHERE description = 'Departed')
+		WHERE status_id = (SELECT id FROM flight_status WHERE description = 'Scheduled')
+			AND departure_time < NOW() - interval '15 minutes'
+	$$
+);
+```
+![](images/Pasted%20image%2020251201194022.png)
+
+3.4 Просмотр всех кронов
+```sql
+SELECT * FROM cron.job;
+```
+![](images/Pasted%20image%2020251201201144.png)
+
+3.5 Просмотр выполненных кронов
+```sql
+SELECT * FROM cron.job_run_details
+ORDER BY start_time DESC;
+```
+![](images/Pasted%20image%2020251201201352.png)
+

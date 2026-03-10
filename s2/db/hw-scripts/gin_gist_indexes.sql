@@ -3,8 +3,14 @@
 -- 1. Создание GIN индекса по полю `flight_tags` (тип `TEXT[]`, массив) — теги рейса --
 CREATE INDEX idx_flight_tags_gin ON flight USING gin (flight_tags);
 
+-- 1 * Удаление idx_flight_tags_gin
+DROP INDEX IF EXISTS idx_flight_tags_gin;
+
 -- 2. Создание GIN индекса по полю `profile_data` (тип `JSONB`) — предпочтения пассажира --
 CREATE INDEX idx_passenger_profile_gin ON passenger USING gin (profile_data jsonb_path_ops);
+
+-- 2 * Удаление idx_passenger_profile_gin;
+DROP INDEX IF EXISTS idx_passenger_profile_gin;
 
 -- 3. Сканирование: ищем рейсы у которых есть тег 'wifi' --
 EXPLAIN ANALYZE
@@ -30,8 +36,14 @@ WHERE NOT (flight_tags @> ARRAY['wifi']);
 -- 1. Создание GiST индекса по полю `booking_window` (тип `TSTZRANGE`, range) — диапазон времени, когда открыта продажа билетов.
 CREATE INDEX idx_flight_booking_window_gist ON flight USING gist (booking_window);
 
+-- 1 * Удаление idx_flight_booking_window_gist
+DROP INDEX IF EXISTS idx_flight_booking_window_gist;
+
 -- 2. Создание GiST индекса по полю `home_address_coords` (тип `POINT`) — геометрический тип
 CREATE INDEX idx_client_coords_gist ON client USING gist (home_address_coords);
+
+-- 2 * Удаление idx_client_coords_gist
+DROP INDEX IF EXISTS idx_client_coords_gist;
 
 -- 3. Сканирование: ищем рейсы чье окно продаж пересекается с выходными
 EXPLAIN ANALYZE

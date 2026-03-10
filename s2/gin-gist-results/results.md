@@ -20,7 +20,11 @@ SELECT flight_number, departure_time
 FROM flight
 WHERE flight_tags @> ARRAY['wifi'];
 ```
-Результат:
+
+Без индекса:
+![img.png](images/img_gin_1ni.png)
+
+С индексом:
 ![images/img_gin_1.png](images/img_gin_1.png)
 
 Все отработало как и предполагалось, был выбран более оптимальный и быстрый GIN вместо Seq Scan
@@ -32,7 +36,11 @@ SELECT first_name, last_name
 FROM passenger
 WHERE profile_data @> '{"meal": "vegan"}';
 ```
-Результат:
+
+Без индекса:
+![img.png](images/img_gin_2ni.png)
+
+С индексом:
 ![img_1.png](images/img_gin_2.png)
 
 Все отработало как и предполагалось, был выбран более оптимальный и быстрый GIN вместо Seq Scan
@@ -44,6 +52,11 @@ SELECT flight_number, departure_time
 FROM flight
 WHERE NOT (flight_tags @> ARRAY['wifi']);
 ```
+
+Без индекса:
+![img.png](images/img_gin_3ni.png)
+
+С индексом:
 ![img.png](images/img_gin_3.png)
 
 Был выбран Seq Scan, так как GIN не может быть использован для запросов с отрицанием (невхождением).
@@ -69,7 +82,10 @@ FROM flight
 WHERE booking_window && tstzrange('2026-03-07 00:00:00+03', '2026-03-09 00:00:00+03');
 ```
 
-Результат:
+Без индекса:
+![img.png](images/img_gist_1ni.png)
+
+C индексом:
 ![img.png](images/img_gist_1.png)
 
 Вывод: был применен gist индекс, потому что он поддерживает операцию пересечения интервалов, и это быстрее чем seq scan
@@ -82,8 +98,10 @@ FROM client
 ORDER BY home_address_coords <-> point(55.97, 37.41)
 LIMIT 5;
 ```
+Без индекса:
+![img.png](images/img_gist_2ni.png)
 
-Результат:
+C индексом:
 ![img.png](images/img_gist_2.png)
 
 Вывод: был применен gist индекс, потому что он поддерживает операцию поиска ближайших соседей, и это быстрее чем seq scan
@@ -96,8 +114,10 @@ SELECT flight_number
 FROM flight
 WHERE booking_window <@ tstzrange('2026-03-01 00:00:00+03', '2026-03-31 23:59:59+03');
 ```
+Без индекса:
+![img.png](images/img_gist_3ni.png)
 
-Результат:
+C индексом:
 ![img.png](images/img_gist_3.png)
 
 Вывод: был применен gist индекс, потому что он поддерживает операцию включения интервалов, и это быстрее чем seq scan

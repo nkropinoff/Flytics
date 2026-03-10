@@ -139,3 +139,14 @@ CREATE INDEX idx_passenger_last_name_hash ON passenger USING hash (last_name);
 CREATE INDEX idx_client_email_hash ON client USING hash (email);
 
 -- 5. Составной hash-индекс создать нельзя
+
+-- УДАЛЕНИЕ существующих hash индексов --
+DROP INDEX IF EXISTS idx_client_phone_hash;
+
+DROP INDEX IF EXISTS idx_booking_total_cost_hash;
+
+DROP INDEX IF EXISTS idx_passenger_last_name_hash;
+
+DROP INDEX IF EXISTS idx_client_email_hash;
+
+DROP INDEX IF EXISTS idx_booking_client_date_hash;

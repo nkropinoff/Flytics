@@ -1,0 +1,30 @@
+services:
+  pg_router:
+    image: postgres:17
+    container_name: fdw_router
+    environment:
+      POSTGRES_DB: flytics
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5440:5432"
+
+  pg_shard1:
+    image: postgres:17
+    container_name: fdw_shard1
+    environment:
+      POSTGRES_DB: flytics
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5441:5432"
+
+  pg_shard2:
+    image: postgres:17
+    container_name: fdw_shard2
+    environment:
+      POSTGRES_DB: flytics
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5442:5432"

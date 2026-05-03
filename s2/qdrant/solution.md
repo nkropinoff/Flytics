@@ -1,5 +1,5 @@
 ## Подготовка
-`docker compose up --build -d`
+В склонированном репозитории `docker compose up --build -d`
 
 Вставил текст:
 ```text

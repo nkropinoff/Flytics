@@ -1,0 +1,11 @@
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/flight_db}
+    username: ${DB_USER:root}
+    password: ${DB_PASS:root}
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yml
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false

@@ -158,24 +158,45 @@ public void finalizeTask(Task task, boolean success) {
 SQL-запрос, который показывает разницу между now() и временем created_at самой старой задачи в статусе Ready.
 Это покажет, как долго задачи ждут выполнения.
 ```postgresql
-SELECT 
-    now() - MIN(created_at) AS max_lag_interval,
-    EXTRACT(EPOCH FROM (now() - MIN(created_at))) AS max_lag_seconds
-FROM tasks 
+SELECT
+    EXTRACT(EPOCH FROM (now() - MIN(created_at))) AS lag_seconds,
+    MIN(created_at) as oldest_task_time
+FROM tasks
 WHERE status = 'Ready';
 ```
-![img.png](src/images/img-1.png)
+
+![img.png](src/images/img-6.png)
+
+![img_1.png](src/images/img-7.png)
+
+![img_2.png](src/images/img-8.png)
+
+Видим рост лага
 
 ### Пропускная способность
-Считаем количество обработанных задач за последнюю минуту
+Считаем количество обработанных задач за секунду
 ```postgresql
 SELECT
-    COUNT(*) / 60.0 AS throughput_tasks_per_second
+    COUNT(*) as processed_per_second
 FROM tasks
 WHERE status IN ('Completed', 'Failed')
-  AND updated_at >= now() - INTERVAL '1 minute';
+  AND updated_at >= now() - INTERVAL '1 second';
 ```
-![img.png](src/images/img-2.png)
+
+![img_3.png](src/images/img-9.png)
+
+## Статистика по приоритету
+```postgresql
+SELECT
+    priority,
+    AVG(EXTRACT(EPOCH FROM (updated_at - created_at))) as avg_completion_time_seconds,
+    COUNT(*) as completed_count
+FROM tasks
+WHERE status = 'Completed'
+GROUP BY priority
+ORDER BY priority DESC;
+```
+![img_4.png](src/images/img-10.png)
 
 ## Агрессивный AutoVacuum
 ```postgresql

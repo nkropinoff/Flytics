@@ -1,0 +1,112 @@
+[
+  {
+    "id": 999901,
+    "flight_number": "SU100",
+    "aircraft_id": 2,
+    "departure_time": "2026-06-10 08:00:00+00",
+    "arrival_time": "2026-06-10 10:00:00+00",
+    "status_id": 1,
+    "flight_tags": ["wifi", "meal", "business_class"],
+    "booking_window": "[\"2026-03-10 08:00:00+00\", \"2026-06-10 07:00:00+00\"]",
+    "actual_departure": null
+  },
+  {
+    "id": 999902,
+    "flight_number": "SU101",
+    "aircraft_id": 2,
+    "departure_time": "2026-06-10 14:00:00+00",
+    "arrival_time": "2026-06-10 16:00:00+00",
+    "status_id": 1,
+    "flight_tags": ["wifi", "meal"],
+    "booking_window": "[\"2026-03-10 14:00:00+00\", \"2026-06-10 13:00:00+00\"]",
+    "actual_departure": "2026-06-10 14:05:00+00"
+  },
+  {
+    "id": 999903,
+    "flight_number": "DP200",
+    "aircraft_id": 3,
+    "departure_time": "2026-06-11 09:00:00+00",
+    "arrival_time": "2026-06-11 12:00:00+00",
+    "status_id": 1,
+    "flight_tags": [],
+    "booking_window": "[\"2026-03-11 09:00:00+00\", \"2026-06-11 08:00:00+00\"]",
+    "actual_departure": null
+  },
+  {
+    "id": 999904,
+    "flight_number": "DP201",
+    "aircraft_id": 3,
+    "departure_time": "2026-06-11 18:00:00+00",
+    "arrival_time": "2026-06-11 21:00:00+00",
+    "status_id": 1,
+    "flight_tags": ["meal"],
+    "booking_window": "[\"2026-03-11 18:00:00+00\", \"2026-06-11 17:00:00+00\"]",
+    "actual_departure": null
+  },
+  {
+    "id": 999905,
+    "flight_number": "S7300",
+    "aircraft_id": 1,
+    "departure_time": "2026-06-12 07:00:00+00",
+    "arrival_time": "2026-06-12 09:00:00+00",
+    "status_id": 1,
+    "flight_tags": ["wifi"],
+    "booking_window": "[\"2026-03-12 07:00:00+00\", \"2026-06-12 06:00:00+00\"]",
+    "actual_departure": null
+  },
+  {
+    "id": 999906,
+    "flight_number": "S7301",
+    "aircraft_id": 1,
+    "departure_time": "2026-06-12 15:00:00+00",
+    "arrival_time": "2026-06-12 17:00:00+00",
+    "status_id": 1,
+    "flight_tags": ["wifi", "meal"],
+    "booking_window": "[\"2026-03-12 15:00:00+00\", \"2026-06-12 14:00:00+00\"]",
+    "actual_departure": null
+  },
+  {
+    "id": 999907,
+    "flight_number": "UT400",
+    "aircraft_id": 5,
+    "departure_time": "2026-06-13 06:00:00+00",
+    "arrival_time": "2026-06-13 08:00:00+00",
+    "status_id": 2,
+    "flight_tags": [],
+    "booking_window": "[\"2026-03-13 06:00:00+00\", \"2026-06-13 05:00:00+00\"]",
+    "actual_departure": "2026-06-13 06:30:00+00"
+  },
+  {
+    "id": 999908,
+    "flight_number": "UT401",
+    "aircraft_id": 5,
+    "departure_time": "2026-06-13 12:00:00+00",
+    "arrival_time": "2026-06-13 14:00:00+00",
+    "status_id": 1,
+    "flight_tags": ["meal"],
+    "booking_window": "[\"2026-03-13 12:00:00+00\", \"2026-06-13 11:00:00+00\"]",
+    "actual_departure": null
+  },
+  {
+    "id": 999909,
+    "flight_number": "SU100",
+    "aircraft_id": 4,
+    "departure_time": "2026-06-14 08:00:00+00",
+    "arrival_time": "2026-06-14 10:00:00+00",
+    "status_id": 1,
+    "flight_tags": ["wifi", "meal", "business_class"],
+    "booking_window": "[\"2026-03-14 08:00:00+00\", \"2026-06-14 07:00:00+00\"]",
+    "actual_departure": null
+  },
+  {
+    "id": 999910,
+    "flight_number": "DP200",
+    "aircraft_id": 3,
+    "departure_time": "2026-06-14 18:00:00+00",
+    "arrival_time": "2026-06-14 21:00:00+00",
+    "status_id": 1,
+    "flight_tags": [],
+    "booking_window": "[\"2026-03-14 18:00:00+00\", \"2026-06-14 17:00:00+00\"]",
+    "actual_departure": null
+  }
+]
